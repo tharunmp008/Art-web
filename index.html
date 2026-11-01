@@ -445,6 +445,69 @@
     .footer-bottom p, .footer-bottom a { font-size: 14px; line-height: 22px; color: var(--ink-3); }
     .footer-bottom a:hover { color: var(--plum); }
 
+    /* ---------- Commission description ---------- */
+    .field textarea {
+      font: inherit; font-size: 16px; color: var(--ink);
+      background: var(--blush-2); border: 1px solid var(--field-border); border-radius: 12px;
+      padding: 15px 17px; width: 100%; min-height: 120px; resize: vertical; outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .field textarea::placeholder { color: var(--field-border); }
+    .field textarea:focus { border-color: var(--plum); box-shadow: 0 0 0 3px rgba(135,77,95,.15); }
+
+    /* ---------- Artwork actions (view, like, comment) ---------- */
+    .g-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; }
+    .action-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--blush); color: var(--plum); border-radius: 9999px;
+      padding: 7px 14px; font-weight: 600; font-size: 13px; line-height: 18px;
+      transition: background .2s, color .2s;
+    }
+    .action-btn:hover { background: var(--rose-light); }
+    .action-btn.liked { background: var(--rose); color: var(--rose-deep); }
+    .action-btn:disabled { opacity: .6; cursor: default; }
+    .action-count { font-weight: 500; }
+
+    .comment-panel { display: flex; flex-direction: column; gap: 12px; padding-top: 14px; }
+    .comment-panel[hidden] { display: none; }
+    .comment-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .comment-item { background: var(--blush-2); border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 20px; color: var(--ink-2); }
+    .comment-item strong { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+    .comment-empty { font-size: 13px; color: var(--ink-3); }
+    .comment-form { display: flex; flex-direction: column; gap: 8px; }
+    .comment-form input, .comment-form textarea {
+      font: inherit; font-size: 14px; color: var(--ink);
+      background: var(--blush-2); border: 1px solid var(--field-border); border-radius: 10px;
+      padding: 10px 12px; width: 100%; outline: none;
+    }
+    .comment-form textarea { min-height: 70px; resize: vertical; }
+    .comment-form input:focus, .comment-form textarea:focus { border-color: var(--plum); }
+    .post-btn {
+      align-self: flex-end; background: var(--plum); color: #fff; border-radius: 9999px;
+      padding: 9px 18px; font-weight: 600; font-size: 14px;
+    }
+    .post-btn:disabled { opacity: .6; cursor: default; }
+    .comment-status { font-size: 13px; min-height: 18px; color: var(--ink-3); }
+    .comment-status.err { color: #b4536b; }
+
+    /* Full-size image viewer */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 120;
+      background: rgba(20, 14, 18, 0.88);
+      display: none; align-items: center; justify-content: center; flex-direction: column;
+      gap: 14px; padding: 56px 20px 24px;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 100%; max-height: 80vh; width: auto; height: auto;
+      object-fit: contain; border-radius: 12px; background: #fff;
+    }
+    .lightbox-caption { color: #fff; font-family: var(--serif); font-size: 20px; text-align: center; }
+    .lightbox-close {
+      position: absolute; top: 14px; right: 18px;
+      color: #fff; font-size: 34px; line-height: 1; background: none; border: 0; cursor: pointer;
+    }
+
     /* ---------- Upload dialog ---------- */
     .modal {
       position: fixed; inset: 0; z-index: 100;
@@ -860,6 +923,11 @@
                 <input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel" />
               </div>
 
+              <div class="field">
+                <label for="description">Describe your commissioned art</label>
+                <textarea id="description" name="description" maxlength="500" placeholder="Subject, size, colors, style, and any details you'd like..."></textarea>
+              </div>
+
               <div class="submit-wrap">
                 <button class="submit-btn" type="button" id="submitBtn">
                   <span>Send Message</span>
@@ -977,7 +1045,7 @@
     }
 
     // ---------- Contact form → Google Apps Script ----------
-    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxucDGV2qqbn6gaam5pwmO2Kj2ShrhgVunxPkZL2kDV2sRZO3-ZC9lVn0IVqRXGk_WBJw/exec';
+    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR4GqNUY5uOQmGFYuobXm_u34b9kjk9WD69ZeRXHVKVXW4BFBhvkpZfXEiG9BEty69dA/exec';
 
     var form = document.getElementById('contactForm');
     var submitBtn = document.getElementById('submitBtn');
@@ -993,6 +1061,7 @@
       ['name', 'email', 'phone'].forEach(function (id) {
         document.getElementById(id).value = '';
       });
+      document.getElementById('description').value = '';
       submitBtn.disabled = false;
       submitBtn.querySelector('span').textContent = 'Send Message';
     }
@@ -1008,6 +1077,7 @@
       var name = document.getElementById('name').value.trim();
       var email = document.getElementById('email').value.trim();
       var phone = document.getElementById('phone').value.trim();
+      var description = document.getElementById('description').value.trim().slice(0, 500);
 
       if (!name || !email) {
         setStatus('Please fill in your name and email address.', 'err');
@@ -1022,7 +1092,7 @@
       submitBtn.querySelector('span').textContent = 'Sending…';
       setStatus('');
 
-      var url = SCRIPT_URL + "?" + new URLSearchParams({ name: name, email: email, phone: phone });
+      var url = SCRIPT_URL + "?" + new URLSearchParams({ name: name, email: email, phone: phone, description: description });
 
       fetch(url, { method: "GET", mode: "no-cors" })
         .then(() => showSuccess())
@@ -1238,6 +1308,246 @@
       });
 
       loadGallery();
+    })();
+  </script>
+  <!-- ============ FULL-IMAGE VIEWER ============ -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Artwork viewer">
+    <button class="lightbox-close" type="button" id="lightboxClose" aria-label="Close">&times;</button>
+    <img id="lightboxImg" alt="" />
+    <div class="lightbox-caption" id="lightboxCaption"></div>
+  </div>
+
+  <script>
+    (function () {
+      var grid = document.getElementById('galleryGrid');
+      var lightbox = document.getElementById('lightbox');
+      var lightboxImg = document.getElementById('lightboxImg');
+      var lightboxCaption = document.getElementById('lightboxCaption');
+      var data = { likes: {}, comments: {} };
+
+      function el(tag, cls, text) {
+        var node = document.createElement(tag);
+        if (cls) node.className = cls;
+        if (text !== undefined) node.textContent = text;
+        return node;
+      }
+
+      function keyOf(card) {
+        var title = card.querySelector('.g-title');
+        return title ? title.textContent.trim() : '';
+      }
+
+      function imageOf(card) {
+        var img = card.querySelector('.g-media img');
+        return img ? img.getAttribute('src') : '';
+      }
+
+      function isLiked(key) {
+        try { return localStorage.getItem('liked:' + key) === '1'; } catch (e) { return false; }
+      }
+      function markLiked(key) {
+        try { localStorage.setItem('liked:' + key, '1'); } catch (e) {}
+      }
+
+      // Send a JSON action to Apps Script (POST as text/plain)
+      function postAction(payload) {
+        return fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (!res.success) throw new Error(res.error || 'Request failed');
+            return res;
+          });
+      }
+
+      // Full-size viewer
+      function openViewer(card) {
+        lightboxImg.src = imageOf(card);
+        lightboxImg.alt = keyOf(card);
+        lightboxCaption.textContent = keyOf(card);
+        lightbox.classList.add('open');
+      }
+      function closeViewer() {
+        lightbox.classList.remove('open');
+        lightboxImg.removeAttribute('src');
+      }
+      document.getElementById('lightboxClose').addEventListener('click', closeViewer);
+      lightbox.addEventListener('click', function (e) { if (e.target === lightbox) closeViewer(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeViewer(); });
+
+      // Update counts, liked state, and comments on a card from the cached data
+      function refresh(card) {
+        var key = card.getAttribute('data-key');
+        if (!key) return;
+
+        var likeBtn = card.querySelector('.like-btn');
+        var likeCount = likeBtn.querySelector('.action-count');
+        likeCount.textContent = data.likes[key] || 0;
+        likeBtn.classList.toggle('liked', isLiked(key));
+
+        var commentBtn = card.querySelector('.comment-btn');
+        var list = data.comments[key] || [];
+        commentBtn.querySelector('.action-count').textContent = list.length;
+
+        var listEl = card.querySelector('.comment-list');
+        listEl.textContent = '';
+        if (list.length === 0) {
+          listEl.appendChild(el('p', 'comment-empty', 'No comments yet. Be the first to share your thoughts.'));
+        } else {
+          list.forEach(function (c) {
+            var item = el('div', 'comment-item');
+            item.appendChild(el('strong', '', c.name));
+            item.appendChild(document.createTextNode(c.comment));
+            listEl.appendChild(item);
+          });
+        }
+      }
+
+      // Add the View / Like / Comment controls to a card (once)
+      function decorate(card) {
+        if (card.querySelector('.g-actions')) return;
+        var key = keyOf(card);
+        if (!key) return;
+        card.setAttribute('data-key', key);
+
+        var actions = el('div', 'g-actions');
+
+        var viewBtn = el('button', 'action-btn view-btn', 'View');
+        viewBtn.type = 'button';
+        viewBtn.addEventListener('click', function () { openViewer(card); });
+
+        var likeBtn = el('button', 'action-btn like-btn');
+        likeBtn.type = 'button';
+        likeBtn.appendChild(document.createTextNode('Like '));
+        likeBtn.appendChild(el('span', 'action-count', '0'));
+        likeBtn.addEventListener('click', function () {
+          if (isLiked(key)) return;
+          markLiked(key);
+          data.likes[key] = (data.likes[key] || 0) + 1;
+          refreshAllFor(key);
+          postAction({ action: 'like', artwork: key }).catch(function () {
+            markUnliked(key);
+            data.likes[key] = Math.max(0, (data.likes[key] || 1) - 1);
+            refreshAllFor(key);
+          });
+        });
+
+        var commentBtn = el('button', 'action-btn comment-btn');
+        commentBtn.type = 'button';
+        commentBtn.appendChild(document.createTextNode('Comments '));
+        commentBtn.appendChild(el('span', 'action-count', '0'));
+
+        actions.appendChild(viewBtn);
+        actions.appendChild(likeBtn);
+        actions.appendChild(commentBtn);
+
+        // Comment panel: list of comments plus a form
+        var panel = el('div', 'comment-panel');
+        panel.hidden = true;
+
+        var listEl = el('div', 'comment-list');
+
+        var form = el('div', 'comment-form');
+        var nameInput = el('input');
+        nameInput.type = 'text';
+        nameInput.placeholder = 'Your name (optional)';
+        nameInput.maxLength = 60;
+        var textInput = el('textarea');
+        textInput.placeholder = 'Write your comment about this artwork...';
+        textInput.maxLength = 300;
+        var postBtn = el('button', 'post-btn', 'Post comment');
+        postBtn.type = 'button';
+        var status = el('p', 'comment-status');
+        status.setAttribute('role', 'status');
+
+        form.appendChild(nameInput);
+        form.appendChild(textInput);
+        form.appendChild(postBtn);
+        form.appendChild(status);
+
+        panel.appendChild(listEl);
+        panel.appendChild(form);
+
+        commentBtn.addEventListener('click', function () {
+          panel.hidden = !panel.hidden;
+        });
+
+        postBtn.addEventListener('click', function () {
+          var text = textInput.value.trim();
+          var name = nameInput.value.trim();
+          if (!text) {
+            status.textContent = 'Please write a comment first.';
+            status.className = 'comment-status err';
+            return;
+          }
+          postBtn.disabled = true;
+          status.textContent = 'Posting…';
+          status.className = 'comment-status';
+
+          postAction({ action: 'comment', artwork: key, name: name, comment: text })
+            .then(function () {
+              data.comments[key] = data.comments[key] || [];
+              data.comments[key].push({ name: name || 'Visitor', comment: text, time: new Date().toISOString() });
+              textInput.value = '';
+              status.textContent = 'Thank you! Your comment was posted.';
+              refreshAllFor(key);
+            })
+            .catch(function () {
+              status.textContent = 'Could not post the comment. Please try again.';
+              status.className = 'comment-status err';
+            })
+            .then(function () {
+              postBtn.disabled = false;
+            });
+        });
+
+        card.appendChild(actions);
+        card.appendChild(panel);
+        refresh(card);
+      }
+
+      function markUnliked(key) {
+        try { localStorage.removeItem('liked:' + key); } catch (e) {}
+      }
+
+      function refreshAllFor(key) {
+        grid.querySelectorAll('.g-item').forEach(function (card) {
+          if (card.getAttribute('data-key') === key) refresh(card);
+        });
+      }
+
+      // Decorate cards that appear later (for example, after an upload)
+      var observer = new MutationObserver(function () {
+        grid.querySelectorAll('.g-item').forEach(function (card) {
+          if (!card.querySelector('.g-actions')) decorate(card);
+        });
+      });
+      observer.observe(grid, { childList: true });
+
+      // Load like counts and comments from the sheet
+      function loadEngagement() {
+        fetch(SCRIPT_URL + '?action=engagement')
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (!res.success) return;
+            data.likes = res.likes || {};
+            data.comments = res.comments || {};
+            grid.querySelectorAll('.g-item').forEach(function (card) {
+              decorate(card);
+              refresh(card);
+            });
+          })
+          .catch(function () {
+            // Buttons still work without the saved counts
+            grid.querySelectorAll('.g-item').forEach(decorate);
+          });
+      }
+
+      grid.querySelectorAll('.g-item').forEach(decorate);
+      loadEngagement();
     })();
   </script>
 </body>
